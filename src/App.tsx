@@ -5,6 +5,7 @@ import PatientsPage from "@/pages/PatientsPage"
 import EncryptionPage from "@/pages/EncryptionPage"
 import AnonymizationPage from "@/pages/AnonymizationPage"
 import MaskingPage from "@/pages/MaskingPage"
+import DifferentialPrivacyPage from "@/pages/DifferentialPrivacyPage"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import DashboardLayout from "@/components/DashboardLayout"
 
@@ -28,7 +29,8 @@ function App() {
         <Route path="encryption" element={<EncryptionPage />} />
         <Route path="anonymization" element={<AnonymizationPage />} />
         <Route path="masking" element={<MaskingPage />} />
-        {/* differential-privacy, comparison added next */}
+        <Route path="differential-privacy" element={<DifferentialPrivacyPage />} />
+        {/* comparison added next */}
       </Route>
     </Routes>
   )

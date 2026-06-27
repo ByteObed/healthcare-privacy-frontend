@@ -6,6 +6,7 @@ import EncryptionPage from "@/pages/EncryptionPage"
 import AnonymizationPage from "@/pages/AnonymizationPage"
 import MaskingPage from "@/pages/MaskingPage"
 import DifferentialPrivacyPage from "@/pages/DifferentialPrivacyPage"
+import ComparisonPage from "@/pages/ComparisonPage"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import DashboardLayout from "@/components/DashboardLayout"
 
@@ -30,7 +31,8 @@ function App() {
         <Route path="anonymization" element={<AnonymizationPage />} />
         <Route path="masking" element={<MaskingPage />} />
         <Route path="differential-privacy" element={<DifferentialPrivacyPage />} />
-        {/* comparison added next */}
+        <Route path="comparison" element={<ComparisonPage />} />
+        
       </Route>
     </Routes>
   )

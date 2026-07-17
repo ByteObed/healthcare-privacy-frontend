@@ -7,6 +7,8 @@ import AnonymizationPage from "@/pages/AnonymizationPage"
 import MaskingPage from "@/pages/MaskingPage"
 import DifferentialPrivacyPage from "@/pages/DifferentialPrivacyPage"
 import ComparisonPage from "@/pages/ComparisonPage"
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage"
+import ResetPasswordPage from "@/pages/ResetPasswordPage"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import DashboardLayout from "@/components/DashboardLayout"
 
@@ -16,6 +18,8 @@ function App() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:uid/:token" element={<ResetPasswordPage />} />
 
       <Route
         path="/dashboard"
@@ -32,7 +36,7 @@ function App() {
         <Route path="masking" element={<MaskingPage />} />
         <Route path="differential-privacy" element={<DifferentialPrivacyPage />} />
         <Route path="comparison" element={<ComparisonPage />} />
-        
+       
       </Route>
     </Routes>
   )

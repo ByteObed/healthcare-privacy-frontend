@@ -34,7 +34,7 @@ export default function MaskingPage() {
     <div>
       <h1 className="text-2xl font-semibold mb-2">Masking</h1>
       <p className="text-sm text-muted-foreground mb-4">
-        This is a display-layer view only — your own patient records are shown
+        This is a display-layer view only, your own patient records are shown
         here with identifying fields partially hidden. No data is sent or
         transferred; masking is just a protective view, not a transfer action.
       </p>

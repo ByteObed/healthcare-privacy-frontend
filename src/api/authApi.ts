@@ -65,3 +65,21 @@ export function logoutRequest() {
   localStorage.removeItem("access")
   localStorage.removeItem("refresh")
 }
+
+// POST /api/organisations/password-reset/request/
+export async function requestPasswordReset(email: string): Promise<void> {
+  await axiosInstance.post("/organisations/password-reset/request/", { email })
+}
+
+// POST /api/organisations/password-reset/confirm/
+export async function confirmPasswordReset(
+  uid: string,
+  token: string,
+  new_password: string
+): Promise<void> {
+  await axiosInstance.post("/organisations/password-reset/confirm/", {
+    uid,
+    token,
+    new_password,
+  })
+}

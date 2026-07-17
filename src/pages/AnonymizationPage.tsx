@@ -104,7 +104,7 @@ export default function AnonymizationPage() {
               <DialogTitle>Export Anonymized Dataset</DialogTitle>
               <DialogDescription>
                 This strips patient identity (name, patient ID, phone) before
-                sending. This action is irreversible — the original identity
+                sending. This action is irreversible, the original identity
                 cannot be recovered by the receiver.
               </DialogDescription>
             </DialogHeader>

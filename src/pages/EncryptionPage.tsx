@@ -153,7 +153,7 @@ export default function EncryptionPage() {
             <DialogHeader>
               <DialogTitle>Send Encrypted Record</DialogTitle>
               <DialogDescription>
-                Encryption is reversible — the receiving hospital will need a
+                Encryption is reversible, the receiving hospital will need a
                 one-time key to decrypt this record.
               </DialogDescription>
             </DialogHeader>

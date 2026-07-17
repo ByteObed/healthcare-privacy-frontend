@@ -78,7 +78,7 @@ export default function DifferentialPrivacyPage() {
       <p className="text-sm text-muted-foreground mb-4">
         Query another hospital's aggregate statistics. A small amount of
         random noise (controlled by the privacy budget, epsilon) is added to
-        protect individual patients — running the same query again will give a
+        protect individual patients, running the same query again will give a
         slightly different result each time. This is expected behavior, not a
         bug.
       </p>

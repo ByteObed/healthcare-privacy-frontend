@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import {
   getPatients,
   createPatient,
   updatePatient,
   deletePatient,
+  importPatientsFromExcel,
   type Patient,
   type PatientCreatePayload,
   type Gender,
@@ -46,6 +47,39 @@ const emptyForm: PatientCreatePayload = {
 }
 
 export default function PatientsPage() {
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
+const [isImporting, setIsImporting] = useState(false)
+const [importMessage, setImportMessage] = useState<string | null>(null)
+
+function handleImportClick() {
+  fileInputRef.current?.click()
+}
+
+async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  setIsImporting(true)
+  setImportMessage(null)
+  setError(null)
+  try {
+    const res = await importPatientsFromExcel(file)
+    setImportMessage(res.message)
+    await loadPatients()
+  } catch (err: any) {
+    const backendError =
+      err?.response?.data?.error ||
+      err?.response?.data?.detail ||
+      "Import failed. Check the file format and try again."
+    setError(backendError)
+  } finally {
+    setIsImporting(false)
+    // reset so selecting the same file again still triggers onChange
+    e.target.value = ""
+  }
+}
+
   const [patients, setPatients] = useState<Patient[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -123,100 +157,125 @@ export default function PatientsPage() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-semibold">Patients</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openAddDialog}>Add Patient</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingId ? "Edit Patient" : "Add Patient"}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 py-2">
-              <div className="space-y-1">
-                <Label>Patient ID</Label>
-                <Input
-                  value={form.patient_id}
-                  onChange={(e) =>
-                    setForm({ ...form, patient_id: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>Name</Label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+
+        <div className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx"
+            className="hidden"
+            onChange={handleFileSelected}
+          />
+
+          <Button
+            variant="outline"
+            onClick={handleImportClick}
+            disabled={isImporting}
+          >
+            {isImporting ? "Importing..." : "Import from Excel"}
+          </Button>
+
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openAddDialog}>Add Patient</Button>
+            </DialogTrigger>
+
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingId ? "Edit Patient" : "Add Patient"}
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-3 py-2">
                 <div className="space-y-1">
-                  <Label>Age</Label>
+                  <Label>Patient ID</Label>
                   <Input
-                    type="number"
-                    value={form.age}
+                    value={form.patient_id}
                     onChange={(e) =>
-                      setForm({ ...form, age: Number(e.target.value) })
+                      setForm({ ...form, patient_id: e.target.value })
                     }
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label>Gender</Label>
-                  <Select
-                    value={form.gender}
-                    onValueChange={(val) =>
-                      setForm({ ...form, gender: val as Gender })
+                  <Label>Name</Label>
+                  <Input
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>Age</Label>
+                    <Input
+                      type="number"
+                      value={form.age}
+                      onChange={(e) =>
+                        setForm({ ...form, age: Number(e.target.value) })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Gender</Label>
+                    <Select
+                      value={form.gender}
+                      onValueChange={(val) =>
+                        setForm({ ...form, gender: val as Gender })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M">Male</SelectItem>
+                        <SelectItem value="F">Female</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label>Phone Number</Label>
+                  <Input
+                    value={form.phone_number}
+                    onChange={(e) =>
+                      setForm({ ...form, phone_number: e.target.value })
                     }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="M">Male</SelectItem>
-                      <SelectItem value="F">Female</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Diagnosis</Label>
+                  <Input
+                    value={form.diagnosis}
+                    onChange={(e) =>
+                      setForm({ ...form, diagnosis: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Medication</Label>
+                  <Input
+                    value={form.medication}
+                    onChange={(e) =>
+                      setForm({ ...form, medication: e.target.value })
+                    }
+                  />
                 </div>
               </div>
-              <div className="space-y-1">
-                <Label>Phone Number</Label>
-                <Input
-                  value={form.phone_number}
-                  onChange={(e) =>
-                    setForm({ ...form, phone_number: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>Diagnosis</Label>
-                <Input
-                  value={form.diagnosis}
-                  onChange={(e) =>
-                    setForm({ ...form, diagnosis: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>Medication</Label>
-                <Input
-                  value={form.medication}
-                  onChange={(e) =>
-                    setForm({ ...form, medication: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? "Saving..." : "Save"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {error && <p className="text-sm text-destructive mb-4">{error}</p>}
+
+      {importMessage && (
+       <p className="text-sm text-green-600 mb-4">{importMessage}</p>
+      )}
 
       {isLoading ? (
         <p className="text-muted-foreground">Loading patients...</p>

@@ -1,3 +1,4 @@
+
 import axiosInstance from "./axios"
 
 export interface AnonymizedRecord {
@@ -47,6 +48,17 @@ export async function getReceivedAnonymizedDatasets(): Promise<AnonymizedDataset
   const res = await axiosInstance.get<
     AnonymizedDataset[] | PaginatedResponse<AnonymizedDataset>
   >("/privacy/anonymization/received/")
+  if (Array.isArray(res.data)) {
+    return res.data
+  }
+  return res.data.results
+}
+
+// GET /api/privacy/anonymization/sent/
+export async function getSentAnonymizedDatasets(): Promise<AnonymizedDataset[]> {
+  const res = await axiosInstance.get<
+    AnonymizedDataset[] | PaginatedResponse<AnonymizedDataset>
+  >("/privacy/anonymization/sent/")
   if (Array.isArray(res.data)) {
     return res.data
   }

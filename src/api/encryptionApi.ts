@@ -66,3 +66,14 @@ export async function decryptRecord(
   )
   return res.data
 }
+
+// GET /api/privacy/encryption/sent/
+export async function getSentEncryptedRecords(): Promise<SharedEncryptedRecord[]> {
+  const res = await axiosInstance.get<
+    SharedEncryptedRecord[] | PaginatedResponse<SharedEncryptedRecord>
+  >("/privacy/encryption/sent/")
+  if (Array.isArray(res.data)) {
+    return res.data
+  }
+  return res.data.results
+}

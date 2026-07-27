@@ -77,3 +77,11 @@ export async function getSentEncryptedRecords(): Promise<SharedEncryptedRecord[]
   }
   return res.data.results
 }
+
+// POST /api/privacy/encryption/<id>/regenerate-key/
+export async function regenerateEncryptionKey(id: number): Promise<SharedEncryptedRecord> {
+  const res = await axiosInstance.post<SharedEncryptedRecord>(
+    `/privacy/encryption/${id}/regenerate-key/`
+  )
+  return res.data
+}

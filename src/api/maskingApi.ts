@@ -24,3 +24,15 @@ export async function getMaskedPatients(): Promise<MaskedPatient[]> {
   }
   return res.data.results
 }
+
+export interface ApplyMaskingResponse {
+  message: string
+}
+
+// POST /api/privacy/masking/apply/
+export async function applyMasking(): Promise<ApplyMaskingResponse> {
+  const res = await axiosInstance.post<ApplyMaskingResponse>(
+    "/privacy/masking/apply/"
+  )
+  return res.data
+}

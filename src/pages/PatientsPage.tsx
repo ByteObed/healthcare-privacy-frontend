@@ -35,6 +35,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 
 const emptyForm: PatientCreatePayload = {
   patient_id: "",
@@ -51,6 +61,7 @@ export default function PatientsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 const [isImporting, setIsImporting] = useState(false)
 const [importMessage, setImportMessage] = useState<string | null>(null)
+const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
 
 function handleImportClick() {
   fileInputRef.current?.click()
@@ -143,15 +154,21 @@ async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
     }
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm("Delete this patient record? This cannot be undone.")) return
-    try {
-      await deletePatient(id)
-      await loadPatients()
-    } catch {
-      setError("Failed to delete patient.")
-    }
+  function openDeleteDialog(id: number) {
+  setDeleteTargetId(id)
+}
+
+async function confirmDelete() {
+  if (!deleteTargetId) return
+  try {
+    await deletePatient(deleteTargetId)
+    await loadPatients()
+  } catch {
+    setError("Failed to delete patient.")
+  } finally {
+    setDeleteTargetId(null)
   }
+}
 
   return (
     <div>
@@ -172,7 +189,7 @@ async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
             onClick={handleImportClick}
             disabled={isImporting}
           >
-            {isImporting ? "Importing..." : "Import from Excel"}
+            {isImporting ? "Importing..." : "Import Data"}
           </Button>
 
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -271,6 +288,21 @@ async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
         </div>
       </div>
 
+      <AlertDialog open={deleteTargetId !== null} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Delete this patient record?</AlertDialogTitle>
+      <AlertDialogDescription>
+        This action cannot be undone. The patient's record will be permanently removed.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel>Cancel</AlertDialogCancel>
+      <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
+
       {error && <p className="text-sm text-destructive mb-4">{error}</p>}
 
       {importMessage && (
@@ -314,7 +346,7 @@ async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
                   <Button
                     size="sm"
                     variant="destructive"
-                    onClick={() => handleDelete(patient.id)}
+                    onClick={() => openDeleteDialog(patient.id)}
                   >
                     Delete
                   </Button>

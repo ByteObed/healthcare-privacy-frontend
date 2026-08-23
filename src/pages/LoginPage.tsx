@@ -13,6 +13,14 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card"
+import { HOSPITAL_SERVERS, setHospitalServer } from "@/config/hospitals"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -25,16 +33,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedHospital, setSelectedHospital] = useState(HOSPITAL_SERVERS[0].url)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setIsSubmitting(true)
+    
     try {
+      setHospitalServer(selectedHospital)
       await login({ username, password })
       navigate("/dashboard")
-    } catch {
-      setError("Invalid username or password.")
+    } catch (err: any) {
+      console.error('Login error:', err)
+      setError(err.response?.data?.detail || err.message || "Invalid username or password.")
     } finally {
       setIsSubmitting(false)
     }
@@ -54,7 +66,23 @@ export default function LoginPage() {
             {successMessage && (
               <p className="text-sm text-green-600">{successMessage}</p>
             )}
-            
+
+            <div className="space-y-2">
+              <Label>Hospital Server</Label>
+              <Select value={selectedHospital} onValueChange={setSelectedHospital}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {HOSPITAL_SERVERS.map((h) => (
+                    <SelectItem key={h.id} value={h.url}>
+                      {h.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input

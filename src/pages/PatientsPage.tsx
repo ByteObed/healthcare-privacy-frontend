@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from "react"
 import {
   getPatients,
@@ -57,39 +58,10 @@ const emptyForm: PatientCreatePayload = {
 }
 
 export default function PatientsPage() {
-  
   const fileInputRef = useRef<HTMLInputElement>(null)
-const [isImporting, setIsImporting] = useState(false)
-const [importMessage, setImportMessage] = useState<string | null>(null)
-const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
-
-function handleImportClick() {
-  fileInputRef.current?.click()
-}
-
-async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
-  const file = e.target.files?.[0]
-  if (!file) return
-
-  setIsImporting(true)
-  setImportMessage(null)
-  setError(null)
-  try {
-    const res = await importPatientsFromExcel(file)
-    setImportMessage(res.message)
-    await loadPatients()
-  } catch (err: any) {
-    const backendError =
-      err?.response?.data?.error ||
-      err?.response?.data?.detail ||
-      "Import failed. Check the file format and try again."
-    setError(backendError)
-  } finally {
-    setIsImporting(false)
-    // reset so selecting the same file again still triggers onChange
-    e.target.value = ""
-  }
-}
+  const [isImporting, setIsImporting] = useState(false)
+  const [importMessage, setImportMessage] = useState<string | null>(null)
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
 
   const [patients, setPatients] = useState<Patient[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -98,7 +70,53 @@ async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState<PatientCreatePayload>(emptyForm)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   const [isSaving, setIsSaving] = useState(false)
+
+  function validateForm(data: PatientCreatePayload): Record<string, string> {
+    const errors: Record<string, string> = {}
+
+    if (!data.patient_id.trim()) errors.patient_id = "Patient ID is required."
+    if (!data.name.trim()) errors.name = "Name is required."
+    if (!data.age || data.age <= 0) errors.age = "Enter a valid age."
+    if (!data.phone_number.trim()) {
+      errors.phone_number = "Phone number is required."
+    } else if (!/^\d{10}$/.test(data.phone_number.trim())) {
+      errors.phone_number = "Phone number must be exactly 10 digits (e.g. 0244123456)."
+    }
+    if (!data.diagnosis.trim()) errors.diagnosis = "Diagnosis is required."
+    if (!data.medication.trim()) errors.medication = "Medication is required."
+
+    return errors
+  }
+
+  function handleImportClick() {
+    fileInputRef.current?.click()
+  }
+
+  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsImporting(true)
+    setImportMessage(null)
+    setError(null)
+    try {
+      const res = await importPatientsFromExcel(file)
+      setImportMessage(res.message)
+      await loadPatients()
+    } catch (err: any) {
+      const backendError =
+        err?.response?.data?.error ||
+        err?.response?.data?.detail ||
+        "Import failed. Check the file format and try again."
+      setError(backendError)
+    } finally {
+      setIsImporting(false)
+      // reset so selecting the same file again still triggers onChange
+      e.target.value = ""
+    }
+  }
 
   async function loadPatients() {
     setIsLoading(true)
@@ -120,6 +138,7 @@ async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
   function openAddDialog() {
     setEditingId(null)
     setForm(emptyForm)
+    setFormErrors({})
     setDialogOpen(true)
   }
 
@@ -134,10 +153,15 @@ async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
       diagnosis: patient.diagnosis,
       medication: patient.medication,
     })
+    setFormErrors({})
     setDialogOpen(true)
   }
 
   async function handleSave() {
+    const errors = validateForm(form)
+    setFormErrors(errors)
+    if (Object.keys(errors).length > 0) return
+
     setIsSaving(true)
     try {
       if (editingId) {
@@ -155,20 +179,20 @@ async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
   }
 
   function openDeleteDialog(id: number) {
-  setDeleteTargetId(id)
-}
-
-async function confirmDelete() {
-  if (!deleteTargetId) return
-  try {
-    await deletePatient(deleteTargetId)
-    await loadPatients()
-  } catch {
-    setError("Failed to delete patient.")
-  } finally {
-    setDeleteTargetId(null)
+    setDeleteTargetId(id)
   }
-}
+
+  async function confirmDelete() {
+    if (!deleteTargetId) return
+    try {
+      await deletePatient(deleteTargetId)
+      await loadPatients()
+    } catch {
+      setError("Failed to delete patient.")
+    } finally {
+      setDeleteTargetId(null)
+    }
+  }
 
   return (
     <div>
@@ -213,6 +237,9 @@ async function confirmDelete() {
                       setForm({ ...form, patient_id: e.target.value })
                     }
                   />
+                  {formErrors.patient_id && (
+                    <p className="text-sm text-destructive">{formErrors.patient_id}</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label>Name</Label>
@@ -220,6 +247,9 @@ async function confirmDelete() {
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                   />
+                  {formErrors.name && (
+                    <p className="text-sm text-destructive">{formErrors.name}</p>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -231,6 +261,9 @@ async function confirmDelete() {
                         setForm({ ...form, age: Number(e.target.value) })
                       }
                     />
+                    {formErrors.age && (
+                      <p className="text-sm text-destructive">{formErrors.age}</p>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <Label>Gender</Label>
@@ -258,6 +291,9 @@ async function confirmDelete() {
                       setForm({ ...form, phone_number: e.target.value })
                     }
                   />
+                  {formErrors.phone_number && (
+                    <p className="text-sm text-destructive">{formErrors.phone_number}</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label>Diagnosis</Label>
@@ -267,6 +303,9 @@ async function confirmDelete() {
                       setForm({ ...form, diagnosis: e.target.value })
                     }
                   />
+                  {formErrors.diagnosis && (
+                    <p className="text-sm text-destructive">{formErrors.diagnosis}</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label>Medication</Label>
@@ -276,6 +315,9 @@ async function confirmDelete() {
                       setForm({ ...form, medication: e.target.value })
                     }
                   />
+                  {formErrors.medication && (
+                    <p className="text-sm text-destructive">{formErrors.medication}</p>
+                  )}
                 </div>
               </div>
               <DialogFooter>
@@ -289,24 +331,24 @@ async function confirmDelete() {
       </div>
 
       <AlertDialog open={deleteTargetId !== null} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
-  <AlertDialogContent>
-    <AlertDialogHeader>
-      <AlertDialogTitle>Delete this patient record?</AlertDialogTitle>
-      <AlertDialogDescription>
-        This action cannot be undone. The patient's record will be permanently removed.
-      </AlertDialogDescription>
-    </AlertDialogHeader>
-    <AlertDialogFooter>
-      <AlertDialogCancel>Cancel</AlertDialogCancel>
-      <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
-    </AlertDialogFooter>
-  </AlertDialogContent>
-</AlertDialog>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this patient record?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The patient's record will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {error && <p className="text-sm text-destructive mb-4">{error}</p>}
 
       {importMessage && (
-       <p className="text-sm text-green-600 mb-4">{importMessage}</p>
+        <p className="text-sm text-green-600 mb-4">{importMessage}</p>
       )}
 
       {isLoading ? (

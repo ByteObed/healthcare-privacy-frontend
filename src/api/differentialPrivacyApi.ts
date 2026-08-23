@@ -1,9 +1,11 @@
+
+
 import axiosInstance from "./axios"
 
 export type DPQueryType = "count_by_diagnosis" | "count_by_gender" | "average_age"
 
 export interface DPQueryPayload {
-  target_organisation_id: number
+  target_url: string  // ✅ FIXED: Changed from target_organisation_id to target_url
   query_type: DPQueryType
   diagnosis?: string
 }

@@ -1,3 +1,5 @@
+
+
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { useAuth } from "@/context/useAuth"
@@ -21,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { HOSPITAL_SERVERS, setHospitalServer } from "@/config/hospitals"
 
 export default function RegisterPage() {
   const { register } = useAuth()
@@ -34,6 +37,7 @@ export default function RegisterPage() {
   const [location, setLocation] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedHospital, setSelectedHospital] = useState(HOSPITAL_SERVERS[0].url)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -46,6 +50,7 @@ export default function RegisterPage() {
 
     setIsSubmitting(true)
     try {
+      setHospitalServer(selectedHospital)
       await register({
         username,
         email,
@@ -73,6 +78,22 @@ export default function RegisterPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Hospital Server</Label>
+              <Select value={selectedHospital} onValueChange={setSelectedHospital}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {HOSPITAL_SERVERS.map((h) => (
+                      <SelectItem key={h.id} value={h.url}>
+                      {h.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="name">Organisation Name</Label>
               <Input

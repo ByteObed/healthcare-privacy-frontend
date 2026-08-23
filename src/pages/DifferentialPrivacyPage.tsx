@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { getOrganisations, type OrganisationListItem } from "@/api/organisationApi"
+import { useState } from "react"
+import { getOtherHospitals, type HospitalOption } from "@/config/hospitals"
 import {
   runDifferentialPrivacyQuery,
   type DPQueryType,
@@ -30,8 +30,8 @@ const QUERY_TYPE_OPTIONS: { value: DPQueryType; label: string }[] = [
 ]
 
 export default function DifferentialPrivacyPage() {
-  const [organisations, setOrganisations] = useState<OrganisationListItem[]>([])
-  const [targetOrgId, setTargetOrgId] = useState("")
+  const [otherHospitals] = useState<HospitalOption[]>(getOtherHospitals())
+  const [targetUrl, setTargetUrl] = useState("")
   const [queryType, setQueryType] = useState<DPQueryType | "">("")
   const [diagnosis, setDiagnosis] = useState("")
 
@@ -39,20 +39,8 @@ export default function DifferentialPrivacyPage() {
   const [isRunning, setIsRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const orgs = await getOrganisations()
-        setOrganisations(orgs)
-      } catch {
-        setError("Failed to load hospitals list.")
-      }
-    }
-    load()
-  }, [])
-
   async function handleRunQuery() {
-    if (!targetOrgId || !queryType) {
+    if (!targetUrl || !queryType) {
       setError("Select a target hospital and query type.")
       return
     }
@@ -60,7 +48,7 @@ export default function DifferentialPrivacyPage() {
     setError(null)
     try {
       const res = await runDifferentialPrivacyQuery({
-        target_organisation_id: Number(targetOrgId),
+        target_url: targetUrl,
         query_type: queryType,
         diagnosis: queryType === "count_by_diagnosis" ? diagnosis || undefined : undefined,
       })
@@ -93,14 +81,14 @@ export default function DifferentialPrivacyPage() {
         <CardContent className="space-y-3">
           <div className="space-y-1">
             <Label>Target Hospital</Label>
-            <Select value={targetOrgId} onValueChange={setTargetOrgId}>
+            <Select value={targetUrl} onValueChange={setTargetUrl}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a hospital" />
               </SelectTrigger>
               <SelectContent>
-                {organisations.map((org) => (
-                  <SelectItem key={org.id} value={String(org.id)}>
-                    {org.name}
+                {otherHospitals.map((h) => (
+                  <SelectItem key={h.id} value={h.url}>
+                    {h.label}
                   </SelectItem>
                 ))}
               </SelectContent>

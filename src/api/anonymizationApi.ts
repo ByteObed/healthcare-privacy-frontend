@@ -10,18 +10,29 @@ export interface AnonymizedRecord {
   medication: string
 }
 
-export interface AnonymizedDataset {
+// Interface for RECEIVED datasets (contains patient records)
+export interface ReceivedAnonymizedDataset {
   id: number
   sender_name: string
-  receiver_name: string
-  filter_criteria: string
+  sent_to?: string
   record_count: number
   created_at: string
-  records: AnonymizedRecord[]
+  records: AnonymizedRecord[]  // Required - has patient data
+}
+
+// Interface for SENT datasets (contains processing metrics)
+export interface SentAnonymizedDataset {
+  id: number
+  sent_to: string
+  original_record_count: number
+  processed_record_count: number
+  processing_time_seconds: number
+  created_at: string
+  // No records field - this is for metrics only
 }
 
 export interface ExportAnonymizedDatasetPayload {
-  receiver_id: number
+  receiver_url: string
   diagnosis_filter?: string
 }
 
@@ -35,8 +46,8 @@ interface PaginatedResponse<T> {
 // POST /api/privacy/anonymization/export/
 export async function exportAnonymizedDataset(
   payload: ExportAnonymizedDatasetPayload
-): Promise<AnonymizedDataset> {
-  const res = await axiosInstance.post<AnonymizedDataset>(
+): Promise<SentAnonymizedDataset> {
+  const res = await axiosInstance.post<SentAnonymizedDataset>(
     "/privacy/anonymization/export/",
     payload
   )
@@ -44,9 +55,9 @@ export async function exportAnonymizedDataset(
 }
 
 // GET /api/privacy/anonymization/received/
-export async function getReceivedAnonymizedDatasets(): Promise<AnonymizedDataset[]> {
+export async function getReceivedAnonymizedDatasets(): Promise<ReceivedAnonymizedDataset[]> {
   const res = await axiosInstance.get<
-    AnonymizedDataset[] | PaginatedResponse<AnonymizedDataset>
+    ReceivedAnonymizedDataset[] | PaginatedResponse<ReceivedAnonymizedDataset>
   >("/privacy/anonymization/received/")
   if (Array.isArray(res.data)) {
     return res.data
@@ -55,9 +66,9 @@ export async function getReceivedAnonymizedDatasets(): Promise<AnonymizedDataset
 }
 
 // GET /api/privacy/anonymization/sent/
-export async function getSentAnonymizedDatasets(): Promise<AnonymizedDataset[]> {
+export async function getSentAnonymizedDatasets(): Promise<SentAnonymizedDataset[]> {
   const res = await axiosInstance.get<
-    AnonymizedDataset[] | PaginatedResponse<AnonymizedDataset>
+    SentAnonymizedDataset[] | PaginatedResponse<SentAnonymizedDataset>
   >("/privacy/anonymization/sent/")
   if (Array.isArray(res.data)) {
     return res.data

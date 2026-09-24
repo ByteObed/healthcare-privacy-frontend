@@ -196,7 +196,7 @@ export default function EncryptionPage() {
                     (record as any).signature_verified ? (
                       <span className="text-green-600">✅</span>
                     ) : (
-                      <span className="text-red-600">❌</span>
+                      <span className="text-red-600"></span>
                     )
                   ) : (
                     <span className="text-muted-foreground">—</span>
